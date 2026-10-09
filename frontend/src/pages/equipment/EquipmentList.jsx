@@ -606,16 +606,16 @@ const EquipmentList = () => {
                   <div className="mb-3">
                     <label className="form-label small fw-semibold">Photo Image URL</label>
                     <input
-                      type="url"
+                      type="text"
                       className="form-control rounded-3"
                       value={formData.image_url}
                       onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                      placeholder="Image URL or local image path"
+                      placeholder="Image URL or local image path (e.g. /images/equipment/...)"
                     />
                     {formData.image_url && (
                       <div className="mt-2 rounded-3 overflow-hidden border bg-dark" style={{ height: '110px' }}>
                         <img
-                          src={formData.image_url}
+                          src={resolveEquipmentImage(formData.image_url)}
                           alt="Preview"
                           className="w-100 h-100"
                           style={{ objectFit: 'cover' }}

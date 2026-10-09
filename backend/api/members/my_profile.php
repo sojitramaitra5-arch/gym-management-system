@@ -53,11 +53,23 @@ $evStmt = $db->prepare("
 $evStmt->execute(array(':member_id' => $memberId));
 $registeredEvents = $evStmt->fetchAll();
 
-// 4. Fetch Active Offers Count
+// 4. Fetch Reserved Product Orders for this member
+$poStmt = $db->prepare("
+    SELECT po.id, po.product_id, po.quantity, po.total_amount, po.status, po.order_date,
+           p.name as product_name, p.category, p.brand, p.flavor, p.weight_size, p.image_url, p.discount_price
+    FROM product_orders po
+    JOIN products p ON po.product_id = p.id
+    WHERE po.member_id = :member_id
+    ORDER BY po.id DESC
+");
+$poStmt->execute(array(':member_id' => $memberId));
+$reservedOrders = $poStmt->fetchAll();
+
+// 5. Fetch Active Offers Count
 $offStmt = $db->query("SELECT COUNT(*) as total_offers FROM offers WHERE status = 'active' AND valid_until >= CURDATE()");
 $offRow = $offStmt->fetch();
 
-// 5. Fetch Total Equipment Count in Gym
+// 6. Fetch Total Equipment Count in Gym
 $eqStmt = $db->query("SELECT COALESCE(SUM(quantity), 0) as total_machines, COUNT(DISTINCT room_name) as total_rooms FROM equipment WHERE condition_status = 'Working'");
 $eqRow = $eqStmt->fetch();
 
@@ -65,6 +77,7 @@ Response::success("Member profile fetched successfully", array(
     'member'             => $member,
     'membership'         => $activeMembership ? $activeMembership : null,
     'registered_events'  => $registeredEvents,
+    'reserved_orders'    => $reservedOrders,
     'total_active_offers'=> (int)$offRow['total_offers'],
     'gym_active_machines'=> (int)$eqRow['total_machines'],
     'gym_rooms_count'    => (int)$eqRow['total_rooms']
