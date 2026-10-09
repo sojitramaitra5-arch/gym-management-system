@@ -54,6 +54,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         Response::error("Valid order_id and status ('requested', 'ready_for_pickup', 'completed', 'cancelled') are required.", null, 422);
     }
     
+    $checkStmt = $db->prepare("SELECT id FROM product_orders WHERE id = :id");
+    $checkStmt->execute(array(':id' => $orderId));
+    if (!$checkStmt->fetch()) {
+        Response::error("Order #{$orderId} not found.", null, 404);
+    }
+    
     $stmt = $db->prepare("UPDATE product_orders SET status = :status WHERE id = :id");
     $updated = $stmt->execute(array(
         ':status' => $newStatus,
@@ -63,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($updated) {
         Response::success("Order #{$orderId} status updated to '{$newStatus}' successfully.");
     } else {
-        Response::error("Failed to update order status.");
+        Response::error("Failed to update order status.", null, 500);
     }
 }
 
